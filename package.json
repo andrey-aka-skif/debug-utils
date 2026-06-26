@@ -5,6 +5,26 @@
   "type": "module",
   "license": "MIT",
   "author": "andrey-aka-skif",
+  "keywords": [
+    "debug",
+    "logging",
+    "sleep",
+    "delay",
+    "localStorage",
+    "fingerprint",
+    "utils"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/andrey-aka-skif/debug-utils.git"
+  },
+  "bugs": {
+    "url": "https://github.com/andrey-aka-skif/debug-utils/issues"
+  },
+  "homepage": "https://github.com/andrey-aka-skif/debug-utils#readme",
+  "engines": {
+    "node": ">=20"
+  },
   "exports": {
     ".": "./src/index.js"
   },
