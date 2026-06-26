@@ -3,4 +3,8 @@ coverage
 *.log
 .DS_Store
 .idea
-.vscode
+
+# .vscode: игнорируем локальные файлы, но шарим общие настройки команды
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json

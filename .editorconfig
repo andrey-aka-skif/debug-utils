@@ -1,0 +1,31 @@
+# Не искать файлы .editorconfig в родительских каталогах
+root = true
+
+
+# Параметры по умолчанию для всех файлов
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+
+# JavaScript
+[*.{js,mjs,cjs}]
+max_line_length = 80
+
+
+# JSON/YAML
+[*.json]
+indent_size = 2
+
+[*.{yml,yaml}]
+indent_size = 2
+
+
+# Markdown
+[*.md]
+trim_trailing_whitespace = false
+max_line_length = 0

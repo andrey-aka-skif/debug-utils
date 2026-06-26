@@ -11,7 +11,11 @@ npm install @andrey-aka-skif/debug-utils
 ## Контракт пакета
 
 ```js
-import { traceLog, sleep, storageFingerprint } from '@andrey-aka-skif/debug-utils'
+import {
+  traceLog,
+  sleep,
+  storageFingerprint,
+} from '@andrey-aka-skif/debug-utils'
 ```
 
 ### `traceLog(...args)`

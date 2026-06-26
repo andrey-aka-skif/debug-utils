@@ -80,7 +80,9 @@ describe('storageFingerprint', () => {
   it('строковый ключ используется и как label', () => {
     stubStorage({ short: 'ab' })
 
-    expect(storageFingerprint(['short'], { length: 8 })).toEqual({ short: 'ab' })
+    expect(storageFingerprint(['short'], { length: 8 })).toEqual({
+      short: 'ab',
+    })
   })
 
   it('truncate=false возвращает значение целиком', () => {

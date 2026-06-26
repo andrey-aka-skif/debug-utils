@@ -1,0 +1,4 @@
+# Файлы и папки, которые Prettier не должен форматировать
+node_modules/
+coverage/
+*.log
