@@ -1,11 +1,17 @@
-export function __timedDebug__(...args) {
-  const stack = new Error().stack
+/**
+ * Логирует аргументы в консоль с таймстампом и контекстом вызова
+ * (имя функции либо `файл:строка`, вычисляется из стека).
+ *
+ * @param {...unknown} args Аргументы для вывода
+ */
+export function traceLog(...args) {
+  const stack = new Error().stack ?? ''
   const frames = stack.split('\n')
 
-  // Ищем caller (первый фрейм после debug)
+  // Ищем фрейм вызывающего кода — первый после кадров самого логгера.
   let callerFrame = ''
   for (let i = 2; i < frames.length; i++) {
-    if (!frames[i].includes('debug')) {
+    if (!frames[i].includes('traceLog')) {
       callerFrame = frames[i]
       break
     }
@@ -42,13 +48,4 @@ export function __timedDebug__(...args) {
     String(now.getMilliseconds()).padStart(3, '0')
 
   console.log(`[${time}] [${context}]`, ...args)
-}
-
-export function __tokensFingerprint__(tokensStorage) {
-  const fingerprint = {
-    at: `${tokensStorage.getAccessToken()?.slice(0, 8)}...`,
-    rt: `${tokensStorage.getRefreshToken()?.slice(0, 8)}...`,
-  }
-
-  __timedDebug__(fingerprint)
 }

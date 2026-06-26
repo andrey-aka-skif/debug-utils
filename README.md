@@ -11,41 +11,50 @@ npm install @andrey-aka-skif/debug-utils
 ## Контракт пакета
 
 ```js
-import {
-  __timedDebug__,
-  __tokensFingerprint__,
-  longActionImitation,
-} from '@andrey-aka-skif/debug-utils'
+import { traceLog, sleep, storageFingerprint } from '@andrey-aka-skif/debug-utils'
 ```
 
-### `__timedDebug__(...args)`
+### `traceLog(...args)`
 
 Логирует аргументы в консоль с таймстампом и контекстом вызова (имя функции
 либо `файл:строка`, вычисляется из стека).
 
 ```js
-__timedDebug__('Сессия восстановлена', user)
+traceLog('Сессия восстановлена', user)
 // [17:42:03.128] [restoreSession] Сессия восстановлена { ... }
 ```
 
-### `__tokensFingerprint__(tokensStorage)`
+### `sleep(ms = 0)`
 
-Логирует укороченный «отпечаток» пары токенов (первые 8 символов access/refresh).
-Ожидает объект с методами `getAccessToken()` и `getRefreshToken()`.
-
-```js
-__tokensFingerprint__(tokenStorage)
-// [17:42:03.131] [?] { at: 'eyJhbGci...', rt: 'eyJ0eXAi...' }
-```
-
-### `longActionImitation(duration = 2000)`
-
-Промис, разрешающийся через `duration` мс. Имитация длительной операции для
-отладки состояний загрузки.
+Промис, разрешающийся через `ms` мс. Пауза / имитация длительной операции.
 
 ```js
-await longActionImitation(1500)
+await sleep(1500)
 ```
+
+### `storageFingerprint(keys, { length = 8, truncate = true })`
+
+Снимает «отпечаток» записей `localStorage`: читает указанные ключи и возвращает
+объект с укороченными значениями. Ничего не логирует — модуль не знает смысла
+данных. Для вывода скомпонуйте с логгером.
+
+`keys` — массив строк или объектов `{ key, label }` (label задаёт имя поля в
+результате; по умолчанию равен ключу).
+
+```js
+traceLog(
+  storageFingerprint(
+    [
+      { key: 'app:access-token', label: 'at' },
+      { key: 'app:refresh-token', label: 'rt' },
+    ],
+    { length: 8 }
+  )
+)
+// [17:42:03.131] [?] { at: 'eyJhbGci…', rt: 'eyJ0eXAi…' }
+```
+
+Отсутствующий ключ → `null`. `truncate: false` возвращает значение целиком.
 
 ## Локальная разработка
 

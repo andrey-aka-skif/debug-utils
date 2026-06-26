@@ -1,27 +1,24 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import {
-  __timedDebug__,
-  __tokensFingerprint__,
-  longActionImitation,
-} from '../index.js'
+import { traceLog, sleep, storageFingerprint } from '../index.js'
 
 afterEach(() => {
   vi.restoreAllMocks()
+  vi.unstubAllGlobals()
 })
 
 describe('контракт пакета', () => {
   it('экспортирует все функции', () => {
-    expect(__timedDebug__).toBeTypeOf('function')
-    expect(__tokensFingerprint__).toBeTypeOf('function')
-    expect(longActionImitation).toBeTypeOf('function')
+    expect(traceLog).toBeTypeOf('function')
+    expect(sleep).toBeTypeOf('function')
+    expect(storageFingerprint).toBeTypeOf('function')
   })
 })
 
-describe('__timedDebug__', () => {
+describe('traceLog', () => {
   it('пишет в console.log с таймстампом и переданными аргументами', () => {
     const spy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
-    __timedDebug__('сообщение', 42)
+    traceLog('сообщение', 42)
 
     expect(spy).toHaveBeenCalledOnce()
     const [prefix, ...rest] = spy.mock.calls[0]
@@ -30,24 +27,10 @@ describe('__timedDebug__', () => {
   })
 })
 
-describe('__tokensFingerprint__', () => {
-  it('логирует укороченный отпечаток токенов', () => {
-    const spy = vi.spyOn(console, 'log').mockImplementation(() => {})
-
-    __tokensFingerprint__({
-      getAccessToken: () => 'access-token-value',
-      getRefreshToken: () => 'refresh-token-value',
-    })
-
-    const payload = spy.mock.calls.at(-1).at(-1)
-    expect(payload).toEqual({ at: 'access-t...', rt: 'refresh-...' })
-  })
-})
-
-describe('longActionImitation', () => {
+describe('sleep', () => {
   it('разрешается примерно через указанную задержку', async () => {
     vi.useFakeTimers()
-    const promise = longActionImitation(1500)
+    const promise = sleep(1500)
     let resolved = false
     promise.then(() => {
       resolved = true
@@ -61,5 +44,50 @@ describe('longActionImitation', () => {
     expect(resolved).toBe(true)
 
     vi.useRealTimers()
+  })
+})
+
+describe('storageFingerprint', () => {
+  const stubStorage = store => {
+    vi.stubGlobal('localStorage', {
+      getItem: key => (key in store ? store[key] : null),
+    })
+  }
+
+  it('читает ключи и укорачивает значения до length', () => {
+    stubStorage({
+      'app:access-token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9',
+      'app:refresh-token': 'rrrrrrrr-rest',
+    })
+
+    const result = storageFingerprint(
+      [
+        { key: 'app:access-token', label: 'at' },
+        { key: 'app:refresh-token', label: 'rt' },
+      ],
+      { length: 8 }
+    )
+
+    expect(result).toEqual({ at: 'eyJhbGci…', rt: 'rrrrrrrr…' })
+  })
+
+  it('null для отсутствующих ключей', () => {
+    stubStorage({})
+
+    expect(storageFingerprint(['missing'])).toEqual({ missing: null })
+  })
+
+  it('строковый ключ используется и как label', () => {
+    stubStorage({ short: 'ab' })
+
+    expect(storageFingerprint(['short'], { length: 8 })).toEqual({ short: 'ab' })
+  })
+
+  it('truncate=false возвращает значение целиком', () => {
+    stubStorage({ k: 'длинное-значение' })
+
+    expect(storageFingerprint(['k'], { truncate: false })).toEqual({
+      k: 'длинное-значение',
+    })
   })
 })
