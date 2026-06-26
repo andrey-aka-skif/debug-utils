@@ -13,6 +13,12 @@ on:
       tag:
         description: 'Тег для сборки и публикации (формат vX.Y.Z)'
         required: true
+      npm-tag:
+        description: >
+          dist-tag для ручной публикации. По умолчанию replay — паркинг-тег,
+          который НЕ сдвигает latest (нужно при пересборке/бэкфилле старой версии).
+        required: false
+        default: replay
 
 permissions:
   contents: read
@@ -57,8 +63,11 @@ jobs:
           fi
           npm version --no-git-tag-version --allow-same-version "$VERSION"
 
+      # dist-tag: релиз → latest; ручной запуск → npm-tag (по умолчанию replay),
+      # чтобы пересборка старой версии не сдвигала latest.
       # Автоматический GITHUB_TOKEN (прав packages:write достаточно для публикации).
       - name: Publish to GitHub Packages
-        run: npm publish
         env:
+          NPM_TAG: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.npm-tag || 'latest' }}
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm publish --tag "$NPM_TAG"
