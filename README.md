@@ -1,8 +1,27 @@
 # @andrey-aka-skif/debug-utils
 
-Небольшой набор утилит для отладки, вынесенный из плагина `jwt-auth-plugin`.
+Набор небольших утилит для отладки. Коллекция пополняется по мере необходимости.
 
 ## Установка
+
+Реестр пакета — GitHub Packages. Его npm-реестр требует токен с правом
+`read:packages` ([settings/tokens](https://github.com/settings/tokens)) даже
+для публичных пакетов — анонимная установка не поддерживается (в отличие от
+Container-реестра ghcr.io).
+
+В `.npmrc` проекта-потребителя (токен берётся из env, в файл не пишется):
+
+```
+@andrey-aka-skif:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${GH_PACKAGES_TOKEN}
+```
+
+Значение токена — в переменной окружения; имя своё под каждый проект, поэтому
+можно держать разные токены. Например, в PowerShell:
+
+```powershell
+[System.Environment]::SetEnvironmentVariable('GH_PACKAGES_TOKEN', 'ghp_…', 'User')
+```
 
 ```bash
 npm install @andrey-aka-skif/debug-utils

@@ -1,7 +1,7 @@
 {
   "name": "@andrey-aka-skif/debug-utils",
-  "version": "0.1.0",
-  "description": "Утилиты для отладки: логирование с таймстампом и контекстом, отпечаток токенов, имитация длительного действия",
+  "version": "0.0.0",
+  "description": "Утилиты для отладки: лог с таймстампом и контекстом, пауза/sleep, отпечаток записей localStorage",
   "type": "module",
   "license": "MIT",
   "author": "andrey-aka-skif",
@@ -12,7 +12,7 @@
     "src"
   ],
   "publishConfig": {
-    "access": "public"
+    "registry": "https://npm.pkg.github.com"
   },
   "scripts": {
     "test": "vitest run",

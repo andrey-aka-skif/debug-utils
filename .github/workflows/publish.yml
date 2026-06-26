@@ -1,29 +1,41 @@
 name: Publish
 
-# Публикация в npm при создании GitHub Release (или вручную).
-# Требуется секрет репозитория NPM_TOKEN (npm automation token).
+# Публикация в GitHub Packages.
+# Версия берётся из git-тега vX.Y.Z (в манифесте всегда 0.0.0).
+# Триггеры:
+#   - publish GitHub Release (тег релиза → версия пакета);
+#   - ручной запуск с указанием тега — для пересборки/переиздания старого коммита.
 on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Тег для сборки и публикации (формат vX.Y.Z)'
+        required: true
+
+permissions:
+  contents: read
+  packages: write
 
 jobs:
   publish:
     runs-on: ubuntu-latest
 
-    permissions:
-      contents: read
-      id-token: write # для npm provenance
-
     steps:
-      - name: Checkout
+      - name: Checkout (по тегу события или указанному вручную)
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
 
+      # registry-url + scope → setup-node пишет scoped-строку @andrey-aka-skif:registry=…
+      # (не дефолтный реестр) и auth через NODE_AUTH_TOKEN. Committed .npmrc не нужен.
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20.x
-          registry-url: https://registry.npmjs.org
+          registry-url: https://npm.pkg.github.com
+          scope: '@andrey-aka-skif'
 
       - name: Install dependencies
         run: npm ci
@@ -34,7 +46,19 @@ jobs:
       - name: Test
         run: npm test
 
-      - name: Publish to npm
-        run: npm publish --provenance --access public
+      - name: Проставить версию из тега (манифест остаётся 0.0.0 в git)
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          TAG: ${{ github.event.inputs.tag || github.ref_name }}
+        run: |
+          VERSION="${TAG#v}"
+          if ! printf '%s' "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+([-.+].*)?$'; then
+            echo "Тег '$TAG' не соответствует формату vX.Y.Z" >&2
+            exit 1
+          fi
+          npm version --no-git-tag-version --allow-same-version "$VERSION"
+
+      # Автоматический GITHUB_TOKEN (прав packages:write достаточно для публикации).
+      - name: Publish to GitHub Packages
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
