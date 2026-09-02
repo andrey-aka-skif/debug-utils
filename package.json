@@ -29,7 +29,8 @@
     ".": "./src/index.js"
   },
   "files": [
-    "src"
+    "src",
+    "!src/__tests__"
   ],
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
@@ -37,6 +38,8 @@
   "scripts": {
     "test": "vitest run",
     "lint": "eslint .",
+    "lint:publish": "publint --strict",
+    "prepublishOnly": "npm run lint:publish",
     "format": "prettier --write src"
   },
   "devDependencies": {
@@ -45,6 +48,7 @@
     "eslint-config-prettier": "^10.1.5",
     "globals": "^16.0.0",
     "prettier": "^3.8.3",
+    "publint": "^0.3.24",
     "vitest": "^3.1.1"
   }
 }

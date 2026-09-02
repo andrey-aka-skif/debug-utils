@@ -66,6 +66,10 @@ jobs:
       # dist-tag: релиз → latest; ручной запуск → npm-tag (по умолчанию replay),
       # чтобы пересборка старой версии не сдвигала latest.
       # Автоматический GITHUB_TOKEN (прав packages:write достаточно для публикации).
+      # Проверку упаковки тянет хук prepublishOnly из манифеста; отдельного шага
+      # здесь нет намеренно. Workflow берётся из master, а дерево — из тега:
+      # явный `npm run lint:publish` упал бы на архивном снапшоте, где такого
+      # скрипта ещё нет, а хук npm берёт из того же дерева, что публикует.
       - name: Publish to GitHub Packages
         env:
           NPM_TAG: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.npm-tag || 'latest' }}
