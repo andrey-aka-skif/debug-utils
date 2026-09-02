@@ -30,5 +30,11 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      # На публикации ту же проверку тянет хук prepublishOnly, но npm publish
+      # в CI не выполняется — здесь нужен явный шаг. Ветки и PR всегда идут по
+      # своему снапшоту, так что жёсткая ссылка на скрипт тут безопасна.
+      - name: Package lint
+        run: npm run lint:publish
+
       - name: Test
         run: npm test
