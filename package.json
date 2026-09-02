@@ -23,7 +23,7 @@
   },
   "homepage": "https://github.com/andrey-aka-skif/debug-utils#readme",
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "exports": {
     ".": "./src/index.js"
@@ -37,10 +37,13 @@
   },
   "scripts": {
     "test": "vitest run",
+    "test:watch": "vitest",
     "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "lint:publish": "publint --strict",
     "prepublishOnly": "npm run lint:publish",
-    "format": "prettier --write src"
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",
