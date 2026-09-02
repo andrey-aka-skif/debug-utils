@@ -1,50 +1,56 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+
+# Публикация пакета в GitHub Packages. Версия берётся из git-тега vX.Y.Z
+# (в манифесте всегда 0.0.0).
+# Единственный триггер — publish GitHub Release: релиз это преднамеренный акт с
+# release notes, голый push тега НЕ публикует. Повторный прогон делается кнопкой
+# Re-run, добор невыпущенного тега — созданием релиза; переиздать уже выпущенную
+# версию нельзя, реестр не даёт перезаписать name@version.
+
 name: Publish
 
-# Публикация в GitHub Packages.
-# Версия берётся из git-тега vX.Y.Z (в манифесте всегда 0.0.0).
-# Триггеры:
-#   - publish GitHub Release (тег релиза → версия пакета);
-#   - ручной запуск с указанием тега — для пересборки/переиздания старого коммита.
 on:
   release:
     types: [published]
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: 'Тег для сборки и публикации (формат vX.Y.Z)'
-        required: true
-      npm-tag:
-        description: >
-          dist-tag для ручной публикации. По умолчанию replay — паркинг-тег,
-          который НЕ сдвигает latest (нужно при пересборке/бэкфилле старой версии).
-        required: false
-        default: replay
 
 permissions:
   contents: read
   packages: write
+
+env:
+  # Active LTS: с 28.10.2025, EOL 28.04.2028
+  NODE_VERSION: '24.x'
+  REGISTRY_URL: 'https://npm.pkg.github.com'
+  NPM_SCOPE: '@andrey-aka-skif'
 
 jobs:
   publish:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout (по тегу события или указанному вручную)
+      # fetch-depth: 0 — нужен полный список тегов: dist-tag latest достаётся
+      # только старшему из них (см. шаг «Версия и dist-tag из тега»).
+      - name: Checkout по тегу релиза
         uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.inputs.tag || github.ref }}
+          ref: ${{ github.ref }}
+          fetch-depth: 0
 
       # registry-url + scope → setup-node пишет scoped-строку @andrey-aka-skif:registry=…
       # (не дефолтный реестр) и auth через NODE_AUTH_TOKEN. Committed .npmrc не нужен.
       - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: 22.x
-          registry-url: https://npm.pkg.github.com
-          scope: '@andrey-aka-skif'
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          registry-url: ${{ env.REGISTRY_URL }}
+          scope: ${{ env.NPM_SCOPE }}
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Format check
+        run: npm run format:check
 
       - name: Lint
         run: npm run lint
@@ -52,26 +58,17 @@ jobs:
       - name: Test
         run: npm test
 
-      - name: Проставить версию из тега (манифест остаётся 0.0.0 в git)
-        env:
-          TAG: ${{ github.event.inputs.tag || github.ref_name }}
-        run: |
-          VERSION="${TAG#v}"
-          if ! printf '%s' "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+([-.+].*)?$'; then
-            echo "Тег '$TAG' не соответствует формату vX.Y.Z" >&2
-            exit 1
-          fi
-          npm version --no-git-tag-version --allow-same-version "$VERSION"
+      - name: Версия и dist-tag из тега (манифест остаётся 0.0.0 в git)
+        id: release
+        uses: ./.github/actions/prepare-npm-release
+        with:
+          tag: ${{ github.ref_name }}
+          prerelease: ${{ github.event.release.prerelease }}
 
-      # dist-tag: релиз → latest; ручной запуск → npm-tag (по умолчанию replay),
-      # чтобы пересборка старой версии не сдвигала latest.
-      # Автоматический GITHUB_TOKEN (прав packages:write достаточно для публикации).
-      # Проверку упаковки тянет хук prepublishOnly из манифеста; отдельного шага
-      # здесь нет намеренно. Workflow берётся из master, а дерево — из тега:
-      # явный `npm run lint:publish` упал бы на архивном снапшоте, где такого
-      # скрипта ещё нет, а хук npm берёт из того же дерева, что публикует.
+      # Проверку упаковки тянет хук prepublishOnly из манифеста, отдельного шага
+      # здесь нет. Встроенный токен вместо PAT: он не истекает, не требует
+      # ручного обновления и ограничен этим репозиторием. Права даёт permissions.
       - name: Publish to GitHub Packages
         env:
-          NPM_TAG: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.npm-tag || 'latest' }}
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm publish --tag "$NPM_TAG"
+        run: npm publish --tag "${{ steps.release.outputs.npm-tag }}"

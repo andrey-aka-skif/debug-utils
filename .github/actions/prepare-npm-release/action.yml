@@ -1,0 +1,48 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-action.json
+
+# Вынесено из publish.yml: выбор dist-тега — политика, а не однострочник, и в
+# теле шага она тонет среди YAML. Экшен локальный (.github/actions), не общий:
+# зеркала у репозитория нет, второго потребителя у политики тоже.
+
+name: Prepare npm release
+description: Проставляет версию из git-тега и выбирает dist-tag публикации
+
+inputs:
+  tag:
+    description: Git-тег релиза в формате vX.Y.Z
+    required: true
+  prerelease:
+    description: Релиз помечен предварительным — публикуется под dist-тегом next
+    default: 'false'
+  tag-pattern:
+    description: Регулярное выражение формата тега
+    default: '^v[0-9]+\.[0-9]+\.[0-9]+$'
+  tag-glob:
+    description: Грубый префильтр для git tag --list, точный отбор делает tag-pattern
+    default: 'v*'
+  lts-prefix:
+    description: >-
+      Префикс dist-тега линии сопровождения: lts- + v1 = lts-v1. Для актуальной
+      линии путь побочный, её штатный dist-тег latest. Префикс, а не суффикс:
+      v1-lts реестр читает как версию и отвергает.
+    default: 'lts-'
+
+outputs:
+  npm-tag:
+    description: dist-tag, под которым публикуется версия
+    value: ${{ steps.resolve.outputs.npm-tag }}
+
+runs:
+  using: composite
+  steps:
+    # Скрипт вызывается через bash, а не как ./run.sh: так не нужен бит
+    # исполнения, который Windows не проставит.
+    - id: resolve
+      shell: bash
+      env:
+        TAG: ${{ inputs.tag }}
+        PRERELEASE: ${{ inputs.prerelease }}
+        TAG_PATTERN: ${{ inputs.tag-pattern }}
+        TAG_GLOB: ${{ inputs.tag-glob }}
+        LTS_PREFIX: ${{ inputs.lts-prefix }}
+      run: bash "$GITHUB_ACTION_PATH/run.sh"
