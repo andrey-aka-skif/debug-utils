@@ -24,8 +24,13 @@ Container-реестра ghcr.io).
 ```
 
 ```bash
-npm install @andrey-aka-skif/debug-utils
+npm install -D @andrey-aka-skif/debug-utils
 ```
+
+> [!WARNING]
+> Пакет — dev-зависимость, устанавливается с флагом `-D`. В production он
+> нежелателен: пишет в консоль отладочные сообщения, а через
+> `storageFingerprint` туда могут попасть начала токенов из `localStorage`.
 
 ## Контракт пакета
 
