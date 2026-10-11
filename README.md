@@ -17,11 +17,26 @@ Container-реестра ghcr.io).
 ```
 
 Значение токена — в переменной окружения; имя своё под каждый проект, поэтому
-можно держать разные токены. Например, в PowerShell:
+можно держать разные токены. Переменную можно задать постоянно — её увидят
+терминалы и IDE, запущенные после этого:
 
 ```powershell
 [System.Environment]::SetEnvironmentVariable('GH_PACKAGES_TOKEN', 'ghp_…', 'User')
 ```
+
+или только на время работы: в PowerShell — до закрытия окна терминала, в bash —
+на одну команду. Тогда её придётся задавать перед каждой установкой
+зависимостей.
+
+```powershell
+$env:GH_PACKAGES_TOKEN = 'ghp_…'
+```
+
+```bash
+GH_PACKAGES_TOKEN='ghp_…' npm install
+```
+
+Установка пакета:
 
 ```bash
 npm install -D @andrey-aka-skif/debug-utils
