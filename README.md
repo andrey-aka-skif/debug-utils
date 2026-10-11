@@ -4,39 +4,8 @@
 
 ## Установка
 
-Реестр пакета — GitHub Packages. Его npm-реестр требует токен с правом
-`read:packages` ([settings/tokens](https://github.com/settings/tokens)) даже
-для публичных пакетов — анонимная установка не поддерживается (в отличие от
-Container-реестра ghcr.io).
-
-В `.npmrc` проекта-потребителя (токен берётся из env, в файл не пишется):
-
-```
-@andrey-aka-skif:registry=https://npm.pkg.github.com
-//npm.pkg.github.com/:_authToken=${GH_PACKAGES_TOKEN}
-```
-
-Значение токена — в переменной окружения; имя своё под каждый проект, поэтому
-можно держать разные токены. Переменную можно задать постоянно — её увидят
-терминалы и IDE, запущенные после этого:
-
-```powershell
-[System.Environment]::SetEnvironmentVariable('GH_PACKAGES_TOKEN', 'ghp_…', 'User')
-```
-
-или только на время работы: в PowerShell — до закрытия окна терминала, в bash —
-на одну команду. Тогда её придётся задавать перед каждой установкой
-зависимостей.
-
-```powershell
-$env:GH_PACKAGES_TOKEN = 'ghp_…'
-```
-
-```bash
-GH_PACKAGES_TOKEN='ghp_…' npm install
-```
-
-Установка пакета:
+Пакет опубликован в GitHub Packages, и для установки нужен токен — см.
+[Доступ к GitHub Packages](#доступ-к-github-packages).
 
 ```bash
 npm install -D @andrey-aka-skif/debug-utils
@@ -105,4 +74,38 @@ traceLog(
 npm install
 npm run lint
 npm test
+```
+
+## Доступ к GitHub Packages
+
+npm-реестр GitHub Packages требует токен с правом `read:packages`
+([settings/tokens](https://github.com/settings/tokens)) даже для публичных
+пакетов — анонимная установка не поддерживается (в отличие от
+Container-реестра ghcr.io).
+
+В `.npmrc` проекта-потребителя (токен берётся из env, в файл не пишется):
+
+```
+@andrey-aka-skif:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${GH_PACKAGES_TOKEN}
+```
+
+Значение токена — в переменной окружения; имя своё под каждый проект, поэтому
+можно держать разные токены. Переменную можно задать постоянно — её увидят
+терминалы и IDE, запущенные после этого:
+
+```powershell
+[System.Environment]::SetEnvironmentVariable('GH_PACKAGES_TOKEN', 'ghp_…', 'User')
+```
+
+или только на время работы: в PowerShell — до закрытия окна терминала, в bash —
+на одну команду. Тогда её придётся задавать перед каждой установкой
+зависимостей.
+
+```powershell
+$env:GH_PACKAGES_TOKEN = 'ghp_…'
+```
+
+```bash
+GH_PACKAGES_TOKEN='ghp_…' npm install
 ```
